@@ -5,21 +5,28 @@
 #include<fcntl.h>
 int main(void)
 {
-   system("echo password | sudo -S -v");                  /* Replace password with your device password.
-                                                             Linux users can skip this part.                        */
-                                                             
-   system("sudo ifconfig en0 ether AA:BB:CC:DD:EE:FF");   /* Replace en0 with your physical network id.
-                                                             Replace AA:BB:CC:DD:EE:FF with the required MAC address.
-                                                             This mac address is registered on the network you are 
-                                                             connecting to. Linux users don't need the sudo.        */
+   char query[50]="sudo ifconfig en0 ether ";               /* Replace en0 with your physical network id. 
+                                                               It is usually en0. Format "en<digit>" */
+   char mac[18],*buf,*token;
+   printf("Enter MAC (in lowerCase AlphaNumeric) : ");      
+   fgets(mac,18,stdin);                                     /* Enter the MAC address. This mac address is 
+                                                               registered on the network you are connecting to. */
+   strcat(query,mac);                                       
+   system(query);                                           /* This is the system call for MAC change. If asked
+                                                               enter the user password (usually in OSX). */
    
-   system("ifconfig en0 | grep ether > mac.txt");         /* Your MAC address has been changed. To provide an user 
-                                                             interactive console. We'll store & print the results.  */
+   system("ifconfig en0 | grep ether > mac.txt");           /* To verify, we'll store the current MAC address 
+                                                               in "mac.txt" file. */
    system("clear");
    int fd = open("mac.txt",O_RDONLY);
-   char *buf,*sptr;
    read(fd,buf,25);
-   char* token = strtok_r(buf," ",&sptr);
-   printf("MAC has been changed to: %s\n",sptr);
+   token = strtok(buf, " ");
+   token = strtok(NULL, " ");
+                                                            /* If the current MAC Address matches our
+                                                               requested Address, notify success. */
+   if(strcmp(token,mac)==0)
+      printf("Mac change successful!\nCurrent MAC Address: %s\n",token);
+   else
+      printf("Mac change failed!\n");
    return 0; 
 }
